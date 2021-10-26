@@ -83,8 +83,8 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
   // An even value means there are no ongoing safepoint operations
   __ andi(t0, rcounter, 1);
   __ bnez(t0, slow);
-  __ xorr(robj, c_rarg1, rcounter);
-  __ xorr(robj, robj, rcounter);               // obj, since
+  __ xor(robj, c_rarg1, rcounter);
+  __ xor(robj, robj, rcounter);               // obj, since
                                               // robj ^ rcounter ^ rcounter == robj
                                               // robj is address dependent on rcounter.
 
@@ -119,8 +119,8 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
   }
 
   // counter_addr is address dependent on result.
-  __ xorr(rcounter_addr, rcounter_addr, result);
-  __ xorr(rcounter_addr, rcounter_addr, result);
+  __ xor(rcounter_addr, rcounter_addr, result);
+  __ xor(rcounter_addr, rcounter_addr, result);
   __ lw(t0, safepoint_counter_addr);
   __ bne(rcounter, t0, slow);
 

@@ -103,18 +103,6 @@ class Instruction(object):
     def astr(self):
         return '%s\t' % self.aname()
 
-    def name(self):
-        name = self._name
-        if name == "and":
-            name = "andr"
-        elif name == "or":
-            name = "orr"
-        elif name == "not":
-            name = "notr"
-        elif name == "xor":
-            name = "xorr"
-        return name
-
     def multipleForms(self):
          return 0
 

@@ -498,7 +498,7 @@ void TemplateTable::condy_helper(Label& Done)
   // VMr2 = flags = (tos, off) using format of CPCE::_flags
   __ mv(off, flags);
   __ mv(t0, ConstantPoolCacheEntry::field_index_mask);
-  __ andr(off, off, t0);
+  __ and(off, off, t0);
 
   __ add(off, obj, off);
   const Address field(off, 0); // base + R---->base + offset
@@ -1386,9 +1386,9 @@ void TemplateTable::iop2(Operation op)
   case add  : __ add(x10, x11, x10);  break;
   case sub  : __ sub(x10, x11, x10);  break;
   case mul  : __ mul(x10, x11, x10);  break;
-  case _and : __ andr(x10, x11, x10); break;
-  case _or  : __ orr(x10, x11, x10);  break;
-  case _xor : __ xorr(x10, x11, x10); break;
+  case _and : __ and(x10, x11, x10);  break;
+  case _or  : __ or(x10, x11, x10);   break;
+  case _xor : __ xor(x10, x11, x10);  break;
   case shl  : __ sll(x10, x11, x10);  break;
   case shr  : __ sra(x10, x11, x10);  break;
   case ushr : __ srl(x10, x11, x10);  break;
@@ -1405,9 +1405,9 @@ void TemplateTable::lop2(Operation op)
   case add  : __ add(x10, x11, x10);  break;
   case sub  : __ sub(x10, x11, x10);  break;
   case mul  : __ mul(x10, x11, x10);  break;
-  case _and : __ andr(x10, x11, x10); break;
-  case _or  : __ orr(x10, x11, x10);  break;
-  case _xor : __ xorr(x10, x11, x10); break;
+  case _and : __ and(x10, x11, x10);  break;
+  case _or  : __ or(x10, x11, x10);   break;
+  case _xor : __ xor(x10, x11, x10);  break;
   default   : ShouldNotReachHere();
   }
 }

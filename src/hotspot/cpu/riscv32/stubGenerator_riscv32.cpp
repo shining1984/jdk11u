@@ -549,7 +549,7 @@ class StubGenerator: public StubCodeGenerator {
 
     // Check if the oop is in the right area of memory
     __ mv(c_rarg3, (intptr_t) Universe::verify_oop_mask());
-    __ andr(c_rarg2, x10, c_rarg3);
+    __ and(c_rarg2, x10, c_rarg3);
     __ mv(c_rarg3, (intptr_t) Universe::verify_oop_bits());
 
     // Compare c_rarg2 and c_rarg3
@@ -874,7 +874,7 @@ class StubGenerator: public StubCodeGenerator {
     __ mv(tmp, 16);
     __ blt(cnt, tmp, copy_small);
 
-    __ xorr(tmp, src, dst);
+    __ xor(tmp, src, dst);
     __ andi(tmp, tmp, 0b111);
     __ bnez(tmp, copy_small);
 
@@ -1525,8 +1525,8 @@ class StubGenerator: public StubCodeGenerator {
     // bump this on entry, not on exit:
     inc_counter_np(SharedRuntime::_unsafe_array_copy_ctr);
 
-    __ orr(t0, s, d);
-    __ orr(t0, t0, count);
+    __ or(t0, s, d);
+    __ or(t0, t0, count);
 
     __ andi(t0, t0, BytesPerLong - 1);
     __ beqz(t0, L_long_aligned);
@@ -1885,12 +1885,12 @@ class StubGenerator: public StubCodeGenerator {
         __ andi(value, value, 0xff);
         __ mv(tmp_reg, value);
         __ slli(tmp_reg, tmp_reg, 8);
-        __ orr(value, value, tmp_reg);
+        __ or(value, value, tmp_reg);
 
         // 16 bit -> 32 bit
         __ mv(tmp_reg, value);
         __ slli(tmp_reg, tmp_reg, 16);
-        __ orr(value, value, tmp_reg);
+        __ or(value, value, tmp_reg);
 
         __ mv(tmp_reg, 4 >> shift); // Short arrays (< 4 bytes) fill by element
         __ bltu(count, tmp_reg, L_fill_elements);
@@ -1902,7 +1902,7 @@ class StubGenerator: public StubCodeGenerator {
         __ andi(value, value, 0xffff);
         __ mv(tmp_reg, value);
         __ slli(tmp_reg, tmp_reg, 16);
-        __ orr(value, value, tmp_reg);
+        __ or(value, value, tmp_reg);
 
         // Short arrays (< 4 bytes) fill by element
         __ mv(tmp_reg, 4 >> shift);
@@ -2180,13 +2180,13 @@ class StubGenerator: public StubCodeGenerator {
     const Register result = x10, str1 = x11, cnt1 = x12, str2 = x13, tmp1 = x28, tmp2 = x29, tmp4 = x7, tmp5 = x31;
     __ lw(tmp5, Address(str1));
     __ addi(str1, str1, 8);
-    __ xorr(tmp4, tmp1, tmp2);
+    __ xor(tmp4, tmp1, tmp2);
     __ lw(cnt1, Address(str2));
     __ addi(str2, str2, 8);
     __ bnez(tmp4, DIFF1);
     __ lw(tmp1, Address(str1));
     __ addi(str1, str1, 8);
-    __ xorr(tmp4, tmp5, cnt1);
+    __ xor(tmp4, tmp5, cnt1);
     __ lw(tmp2, Address(str2));
     __ addi(str2, str2, 8);
     __ bnez(tmp4, DIFF2);
@@ -2204,14 +2204,14 @@ class StubGenerator: public StubCodeGenerator {
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
     // now we have 32 bytes of characters
-    __ xorr(tmp3, tmp4, t0);
+    __ xor(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
 
     __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
-    __ xorr(tmp3, tmpU, t0);
+    __ xor(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);
 
     __ lw(tmpL, Address(tmp2));
@@ -2220,14 +2220,14 @@ class StubGenerator: public StubCodeGenerator {
     __ addi(cnt1, cnt1, 8);
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
-    __ xorr(tmp3, tmp4, t0);
+    __ xor(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
 
     __ lw(tmp4, Address(cnt1));
     __ addi(cnt1, cnt1, 8);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
-    __ xorr(tmp3, tmpU, t0);
+    __ xor(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);
   }
 
@@ -2267,7 +2267,7 @@ class StubGenerator: public StubCodeGenerator {
       __ add(str1, str1, t0);
       __ add(str2, str2, cnt2);
     }
-    __ xorr(tmp3, tmp1, tmp2);
+    __ xor(tmp3, tmp1, tmp2);
     __ mv(tmp5, tmp2);
     __ bnez(tmp3, CALCULATE_DIFFERENCE);
 
@@ -2310,7 +2310,7 @@ class StubGenerator: public StubCodeGenerator {
       __ lw(tmpL, Address(strL));
       __ inflate_lo32(tmp3, tmpL);
       __ mv(tmpL, tmp3);
-      __ xorr(tmp3, tmpU, tmpL);
+      __ xor(tmp3, tmpU, tmpL);
       __ beqz(tmp3, DONE);
 
       // Find the first different characters in the longwords and
@@ -2367,7 +2367,7 @@ class StubGenerator: public StubCodeGenerator {
       __ beqz(cnt2, LAST_CHECK_AND_LENGTH_DIFF);
       __ sub(cnt2, cnt2, isLL ? 8 : 4);
       __ blez(cnt2, CHECK_LAST);
-      __ xorr(tmp4, tmp1, tmp2);
+      __ xor(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
       __ lw(tmp1, Address(str1));
       __ addi(str1, str1, 8);
@@ -2378,13 +2378,13 @@ class StubGenerator: public StubCodeGenerator {
       if (!isLL) {
         __ add(cnt2, cnt2, cnt2); // now in bytes
       }
-      __ xorr(tmp4, tmp1, tmp2);
+      __ xor(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
       __ add(str1, str1, cnt2);
       __ lw(tmp5, Address(str1));
       __ add(str2, str2, cnt2);
       __ lw(cnt1, Address(str2));
-      __ xorr(tmp4, tmp5, cnt1);
+      __ xor(tmp4, tmp5, cnt1);
       __ beqz(tmp4, LENGTH_DIFF);
       // Find the first different characters in the longwords and
       // compute their difference.
@@ -2415,7 +2415,7 @@ class StubGenerator: public StubCodeGenerator {
       __ sub(result, tmp1, tmp2);
       __ j(LENGTH_DIFF);
     __ bind(LAST_CHECK_AND_LENGTH_DIFF);
-      __ xorr(tmp4, tmp1, tmp2);
+      __ xor(tmp4, tmp1, tmp2);
       __ bnez(tmp4, DIFF);
     __ bind(LENGTH_DIFF);
       __ pop_reg(spilled_regs, sp);
@@ -2485,7 +2485,7 @@ class StubGenerator: public StubCodeGenerator {
     if (needle_isL != haystack_isL) {
       __ inflate_lo32(ch1, tmp, match_mask, tailing_zero);
     }
-    // xorr, sub, orr, notr, andr
+    // xor, sub, or, notr, and
     // compare and set match_mask[i] with 0x80/0x8000 (Latin1/UTF16) if ch2[i] == first[i]
     // eg:
     // first:        aa aa aa aa aa aa aa aa
@@ -2517,9 +2517,9 @@ class StubGenerator: public StubCodeGenerator {
     __ lw(ch2, Address(haystack));
     __ slli(haystack_len, haystack_len, LogBitsPerByte + haystack_chr_shift);
     __ neg(haystack_len, haystack_len);
-    __ xorr(ch2, first, ch2);
+    __ xor(ch2, first, ch2);
     __ sub(match_mask, ch2, mask1);
-    __ orr(ch2, ch2, mask2);
+    __ or(ch2, ch2, mask2);
     __ mv(tailing_zero, -1); // all bits set
     __ j(L_SMALL_PROCEED);
 
@@ -2530,16 +2530,16 @@ class StubGenerator: public StubCodeGenerator {
     if (needle_isL != haystack_isL) {
       __ inflate_lo32(ch1, tmp, match_mask, tailing_zero);
     }
-    __ xorr(ch2, first, ch2);
+    __ xor(ch2, first, ch2);
     __ sub(match_mask, ch2, mask1);
-    __ orr(ch2, ch2, mask2);
+    __ or(ch2, ch2, mask2);
     __ mv(tailing_zero, -1); // all bits set
 
     __ bind(L_SMALL_PROCEED);
     __ srl(tailing_zero, tailing_zero, haystack_len); // mask. zeroes on useless bits.
     __ notr(ch2, ch2);
-    __ andr(match_mask, match_mask, ch2);
-    __ andr(ch2, match_mask, tailing_zero); // clear useless bits and check
+    __ and(match_mask, match_mask, ch2);
+    __ and(ch2, match_mask, tailing_zero); // clear useless bits and check
     __ beqz(ch2, NOMATCH);
 
     __ bind(L_SMALL_HAS_ZERO_LOOP);
@@ -2583,7 +2583,7 @@ class StubGenerator: public StubCodeGenerator {
     __ bind(L_HAS_ZERO);
     __ ctz_bit(tailing_zero, match_mask, tmp, ch2);
     __ slli(needle_len, needle_len, BitsPerByte * wordSize / 2);
-    __ orr(haystack_len, haystack_len, needle_len); // restore needle_len(32bits)
+    __ or(haystack_len, haystack_len, needle_len); // restore needle_len(32bits)
     __ sub(result, result, 1); // array index from 0, so result -= 1
 
     __ bind(L_HAS_ZERO_LOOP);

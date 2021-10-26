@@ -2085,7 +2085,7 @@ encode %{
     // If (mark & lock_mask) == 0 and mark - sp < page_size, we are stack-locking and goto cont,
     // hence we can store 0 as the displaced header in the box, which indicates that it is a
     // recursive lock.
-    __ andr(tmp/*==0?*/, disp_hdr, tmp);
+    __ and(tmp/*==0?*/, disp_hdr, tmp);
     __ sw(tmp/*==0, perhaps*/, Address(box, BasicLock::displaced_header_offset_in_bytes()));
     __ mv(flag, tmp); // we can use the value of tmp as the result here
 
@@ -2156,7 +2156,7 @@ encode %{
 
     __ cmpxchg(/*memory address*/oop, /*expected value*/box, /*new value*/disp_hdr, Assembler::int32, Assembler::relaxed,
                Assembler::rl, /*result*/tmp);
-    __ xorr(flag, box, tmp); // box == tmp if cas succeeds
+    __ xor(flag, box, tmp); // box == tmp if cas succeeds
     __ j(cont);
 
     assert(oopDesc::mark_offset_in_bytes() == 0, "offset of _mark is not 0");
@@ -2167,13 +2167,13 @@ encode %{
       __ add(tmp, tmp, -markOopDesc::monitor_value); // monitor
       __ lw(flag, Address(tmp, ObjectMonitor::owner_offset_in_bytes()));
       __ lw(disp_hdr, Address(tmp, ObjectMonitor::recursions_offset_in_bytes()));
-      __ xorr(flag, flag, xthread); // Will be 0 if we are the owner.
-      __ orr(flag, flag, disp_hdr); // Will be 0 if there are 0 recursions
+      __ xor(flag, flag, xthread); // Will be 0 if we are the owner.
+      __ or(flag, flag, disp_hdr); // Will be 0 if there are 0 recursions
       __ bnez(flag, cont);
 
       __ lw(flag, Address(tmp, ObjectMonitor::EntryList_offset_in_bytes()));
       __ lw(disp_hdr, Address(tmp, ObjectMonitor::cxq_offset_in_bytes()));
-      __ orr(flag, flag, disp_hdr); // Will be 0 if both are 0.
+      __ or(flag, flag, disp_hdr); // Will be 0 if both are 0.
       __ bnez(flag, cont);
       // need a release store here
       __ la(tmp, Address(tmp, ObjectMonitor::owner_offset_in_bytes()));
@@ -4811,13 +4811,13 @@ instruct storeLConditional(indirect mem, iRegLNoSp oldval, iRegLNoSp newval, iRe
 
   format %{
     "cmpxchg t1, $mem, $oldval, $newval, $mem\t# if $mem == $oldval then $mem <-- $newval"
-    "xorr $cr, $cr, $oldval\t# $cr == 0 on successful write, #@storeLConditional"
+    "xor $cr, $cr, $oldval\t# $cr == 0 on successful write, #@storeLConditional"
   %}
 
   ins_encode %{
     __ cmpxchg(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $cr$$Register);
-    __ xorr($cr$$Register,$cr$$Register, $oldval$$Register);
+    __ xor($cr$$Register,$cr$$Register, $oldval$$Register);
   %}
 
   ins_pipe(pipe_slow);
@@ -4833,13 +4833,13 @@ instruct storeIConditional(indirect mem, iRegINoSp oldval, iRegINoSp newval, iRe
 
   format %{
     "cmpxchgw t1, $mem, $oldval, $newval, $mem\t# if $mem == $oldval then $mem <-- $newval"
-    "xorr $cr, $cr, $oldval\t# $cr == 0 on successful write, #@storeIConditional"
+    "xor $cr, $cr, $oldval\t# $cr == 0 on successful write, #@storeIConditional"
   %}
 
   ins_encode %{
     __ cmpxchg(as_Register($mem$$base), $oldval$$Register, $newval$$Register, Assembler::int32,
                /*acquire*/ Assembler::aq, /*release*/ Assembler::rl, $cr$$Register);
-    __ xorr($cr$$Register,$cr$$Register, $oldval$$Register);
+    __ xor($cr$$Register,$cr$$Register, $oldval$$Register);
   %}
 
   ins_pipe(pipe_slow);
@@ -6942,11 +6942,11 @@ instruct sqrtD_reg(fRegD dst, fRegD src) %{
 instruct andI_reg_reg(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (AndI src1 src2));
 
-  format %{ "andr  $dst, $src1, $src2\t#@andI_reg_reg" %}
+  format %{ "and  $dst, $src1, $src2\t#@andI_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ andr(as_Register($dst$$reg),
+    __ and(as_Register($dst$$reg),
             as_Register($src1$$reg),
             as_Register($src2$$reg));
   %}
@@ -6974,13 +6974,13 @@ instruct andI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
 instruct orI_reg_reg(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (OrI src1 src2));
 
-  format %{ "orr  $dst, $src1, $src2\t#@orI_reg_reg" %}
+  format %{ "or  $dst, $src1, $src2\t#@orI_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ orr(as_Register($dst$$reg),
-           as_Register($src1$$reg),
-           as_Register($src2$$reg));
+    __ or(as_Register($dst$$reg),
+          as_Register($src1$$reg),
+          as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
@@ -7006,13 +7006,13 @@ instruct orI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
 instruct xorI_reg_reg(iRegINoSp dst, iRegIorL2I src1, iRegIorL2I src2) %{
   match(Set dst (XorI src1 src2));
 
-  format %{ "xorr  $dst, $src1, $src2\t#@xorI_reg_reg" %}
+  format %{ "xor  $dst, $src1, $src2\t#@xorI_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ xorr(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
+    __ xor(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
@@ -7038,11 +7038,11 @@ instruct xorI_reg_imm(iRegINoSp dst, iRegIorL2I src1, immIAdd src2) %{
 instruct andL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (AndL src1 src2));
 
-  format %{ "andr  $dst, $src1, $src2\t#@andL_reg_reg" %}
+  format %{ "and  $dst, $src1, $src2\t#@andL_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ andr(as_Register($dst$$reg),
+    __ and(as_Register($dst$$reg),
             as_Register($src1$$reg),
             as_Register($src2$$reg));
   %}
@@ -7070,13 +7070,13 @@ instruct andL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
 instruct orL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (OrL src1 src2));
 
-  format %{ "orr  $dst, $src1, $src2\t#@orL_reg_reg" %}
+  format %{ "or  $dst, $src1, $src2\t#@orL_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ orr(as_Register($dst$$reg),
-           as_Register($src1$$reg),
-           as_Register($src2$$reg));
+    __ or(as_Register($dst$$reg),
+          as_Register($src1$$reg),
+          as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);
@@ -7102,13 +7102,13 @@ instruct orL_reg_imm(iRegLNoSp dst, iRegL src1, immLAdd src2) %{
 instruct xorL_reg_reg(iRegLNoSp dst, iRegL src1, iRegL src2) %{
   match(Set dst (XorL src1 src2));
 
-  format %{ "xorr  $dst, $src1, $src2\t#@xorL_reg_reg" %}
+  format %{ "xor  $dst, $src1, $src2\t#@xorL_reg_reg" %}
 
   ins_cost(ALU_COST);
   ins_encode %{
-    __ xorr(as_Register($dst$$reg),
-            as_Register($src1$$reg),
-            as_Register($src2$$reg));
+    __ xor(as_Register($dst$$reg),
+           as_Register($src1$$reg),
+           as_Register($src2$$reg));
   %}
 
   ins_pipe(ialu_reg_reg);

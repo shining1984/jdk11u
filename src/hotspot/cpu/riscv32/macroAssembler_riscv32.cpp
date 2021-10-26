@@ -1386,7 +1386,7 @@ void MacroAssembler::grevh(Register Rd, Register Rs, Register Rtmp) {
   andi(Rtmp, Rtmp, 0xFF);
   slli(Rd, Rs, 24);
   srai(Rd, Rd, 16); // sign-extend
-  orr(Rd, Rd, Rtmp);
+  or(Rd, Rd, Rtmp);
 }
 
 void MacroAssembler::grevhu(Register Rd, Register Rs, Register Rtmp) {
@@ -1398,7 +1398,7 @@ void MacroAssembler::grevhu(Register Rd, Register Rs, Register Rtmp) {
   andi(Rtmp, Rtmp, 0xFF);
   andi(Rd, Rs, 0xFF);
   slli(Rd, Rd, 8);
-  orr(Rd, Rd, Rtmp);
+  or(Rd, Rd, Rtmp);
 }
 
 void MacroAssembler::grev16w(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1410,7 +1410,7 @@ void MacroAssembler::grev16w(Register Rd, Register Rs, Register Rtmp1, Register 
   grevh(Rtmp2, Rtmp2, Rtmp1);
   grevhu(Rd, Rs, Rtmp1);
   slli(Rtmp2, Rtmp2, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grev16wu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1422,7 +1422,7 @@ void MacroAssembler::grev16wu(Register Rd, Register Rs, Register Rtmp1, Register
   grevhu(Rtmp2, Rtmp2, Rtmp1);
   grevhu(Rd, Rs, Rtmp1);
   slli(Rtmp2, Rtmp2, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grevw(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1433,7 +1433,7 @@ void MacroAssembler::grevw(Register Rd, Register Rs, Register Rtmp1, Register Rt
   grev16wu(Rd, Rs, Rtmp1, Rtmp2);
   slli(Rtmp2, Rd, 16);
   srli(Rd, Rd, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1445,7 +1445,7 @@ void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register R
   slli(Rtmp2, Rd, 48);
   srli(Rtmp2, Rtmp2, 32);
   srli(Rd, Rd, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grev16(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1457,7 +1457,7 @@ void MacroAssembler::grev16(Register Rd, Register Rs, Register Rtmp1, Register R
   grevhu(Rtmp2, Rtmp2, Rtmp1);
   grevhu(Rd, Rs, Rtmp1);
   slli(Rtmp2, Rtmp2, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::grev32(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
@@ -1468,7 +1468,7 @@ void MacroAssembler::grev32(Register Rd, Register Rs, Register Rtmp1, Register R
   grev16wu(Rd, Rs, Rtmp1, Rtmp2);
   slli(Rtmp2, Rd, 16);
   srli(Rd, Rd, 16);
-  orr(Rd, Rd, Rtmp2);
+  or(Rd, Rd, Rtmp2);
 }
 
 void MacroAssembler::andi(Register Rd, Register Rn, int32_t increment, Register tmp) {
@@ -1477,21 +1477,21 @@ void MacroAssembler::andi(Register Rd, Register Rn, int32_t increment, Register 
   } else {
     assert_different_registers(Rn, tmp);
     li(tmp, increment);
-    andr(Rd, Rn, tmp);
+    and(Rd, Rn, tmp);
   }
 }
 
 void MacroAssembler::orptr(Address adr, RegisterOrConstant src, Register tmp1, Register tmp2) {
   lw(tmp1, adr);
   if (src.is_register()) {
-    orr(tmp1, tmp1, src.as_register());
+    or(tmp1, tmp1, src.as_register());
   } else {
     if(is_imm_in_range(src.as_constant(), 12, 0)) {
       ori(tmp1, tmp1, src.as_constant());
     } else {
       assert_different_registers(tmp1, tmp2);
       li(tmp2, src.as_constant());
-      orr(tmp1, tmp1, tmp2);
+      or(tmp1, tmp1, tmp2);
     }
   }
   sw(tmp1, adr);
@@ -2158,20 +2158,20 @@ void MacroAssembler::cmpxchg_narrow_value(Register addr, Register expected,
   xori(not_mask, mask, -1);
 
   sll(expected, expected, shift);
-  andr(expected, expected, mask);
+  and(expected, expected, mask);
 
   sll(new_val, new_val, shift);
-  andr(new_val, new_val, mask);
+  and(new_val, new_val, mask);
 
   Label retry, fail, done;
 
   bind(retry);
   lr_w(old, aligned_addr, acquire);
-  andr(tmp, old, mask);
+  and(tmp, old, mask);
   bne(tmp, expected, fail);
 
-  andr(tmp, old, not_mask);
-  orr(tmp, tmp, new_val);
+  and(tmp, old, not_mask);
+  or(tmp, tmp, new_val);
   sc_w(tmp, tmp, aligned_addr, release);
   bnez(tmp, retry);
 
@@ -2184,7 +2184,7 @@ void MacroAssembler::cmpxchg_narrow_value(Register addr, Register expected,
 
     bind(done);
   } else {
-    andr(tmp, old, mask);
+    and(tmp, old, mask);
 
     bind(fail);
     srl(result, tmp, shift);
@@ -2222,19 +2222,19 @@ void MacroAssembler::weak_cmpxchg_narrow_value(Register addr, Register expected,
   xori(not_mask, mask, -1);
 
   sll(expected, expected, shift);
-  andr(expected, expected, mask);
+  and(expected, expected, mask);
 
   sll(new_val, new_val, shift);
-  andr(new_val, new_val, mask);
+  and(new_val, new_val, mask);
 
   Label succ, fail, done;
 
   lr_w(old, aligned_addr, acquire);
-  andr(tmp, old, mask);
+  and(tmp, old, mask);
   bne(tmp, expected, fail);
 
-  andr(tmp, old, not_mask);
-  orr(tmp, tmp, new_val);
+  and(tmp, old, not_mask);
+  or(tmp, tmp, new_val);
   sc_w(tmp, tmp, aligned_addr, release);
   beqz(tmp, succ);
 
@@ -2405,8 +2405,8 @@ int MacroAssembler::biased_locking_enter(Register lock_reg,
   // The bias pattern is present in the object's header. Need to check
   // whether the bias owner and the epoch are both still current.
   load_prototype_header(tmp_reg, obj_reg);
-  orr(tmp_reg, tmp_reg, xthread);
-  xorr(tmp_reg, swap_reg, tmp_reg);
+  or(tmp_reg, tmp_reg, xthread);
+  xor(tmp_reg, swap_reg, tmp_reg);
   andi(tmp_reg, tmp_reg, ~((int) markOopDesc::age_mask_in_place));
   if (flag->is_valid()) {
     mv(flag, tmp_reg);
@@ -2459,8 +2459,8 @@ int MacroAssembler::biased_locking_enter(Register lock_reg,
     Label cas_success;
     Label counter;
     mv(t0, markOopDesc::biased_lock_mask_in_place | markOopDesc::age_mask_in_place | markOopDesc::epoch_mask_in_place);
-    andr(swap_reg, swap_reg, t0);
-    orr(tmp_reg, swap_reg, xthread);
+    and(swap_reg, swap_reg, t0);
+    or(tmp_reg, swap_reg, xthread);
     cmpxchg_obj_header(swap_reg, tmp_reg, obj_reg, t0, cas_success, slow_case);
     // cas failed here if slow_cass == NULL
     if (flag->is_valid()) {
@@ -2499,7 +2499,7 @@ int MacroAssembler::biased_locking_enter(Register lock_reg,
     Label cas_success;
     Label counter;
     load_prototype_header(tmp_reg, obj_reg);
-    orr(tmp_reg, xthread, tmp_reg);
+    or(tmp_reg, xthread, tmp_reg);
     cmpxchg_obj_header(swap_reg, tmp_reg, obj_reg, t0, cas_success, slow_case);
     // cas failed here if slow_cass == NULL
     if (flag->is_valid()) {
@@ -3140,17 +3140,17 @@ void MacroAssembler::arrays_equals(Register a1, Register a2, Register tmp3,
   j(DONE);
 
   bind(TAIL);
-  xorr(tmp4, tmp3, tmp4);
-  xorr(tmp2, tmp1, tmp2);
+  xor(tmp4, tmp3, tmp4);
+  xor(tmp2, tmp1, tmp2);
   sll(tmp2, tmp2, tmp5);
-  orr(tmp5, tmp4, tmp2);
+  or(tmp5, tmp4, tmp2);
   j(IS_TMP5_ZR);
 
   bind(TAIL2);
   bne(tmp1, tmp2, DONE);
 
   bind(SHORT);
-  xorr(tmp4, tmp3, tmp4);
+  xor(tmp4, tmp3, tmp4);
   sll(tmp5, tmp4, tmp5);
 
   bind(IS_TMP5_ZR);
@@ -3362,7 +3362,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
     }
     addi(cnt2, cnt2, isUL ? 4 : 8);
     bgez(cnt2, TAIL);
-    xorr(tmp3, tmp1, tmp2);
+    xor(tmp3, tmp1, tmp2);
     bnez(tmp3, DIFFERENCE);
 
     // main loop
@@ -3394,11 +3394,11 @@ void MacroAssembler::string_compare(Register str1, Register str2,
     }
     bgez(cnt2, TAIL);
 
-    xorr(tmp3, tmp1, tmp2);
+    xor(tmp3, tmp1, tmp2);
     beqz(tmp3, NEXT_WORD);
     j(DIFFERENCE);
     bind(TAIL);
-    xorr(tmp3, tmp1, tmp2);
+    xor(tmp3, tmp1, tmp2);
     bnez(tmp3, DIFFERENCE);
     // Last longword.  In the case where length == 4 we compare the
     // same longword twice, but that's still faster than another
@@ -3418,7 +3418,7 @@ void MacroAssembler::string_compare(Register str1, Register str2,
       mv(tmp2, tmp3);
     }
     bind(TAIL_CHECK);
-    xorr(tmp3, tmp1, tmp2);
+    xor(tmp3, tmp1, tmp2);
     beqz(tmp3, DONE);
 
     // Find the first different characters in the longwords and
@@ -3661,11 +3661,11 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
 
   // init BC offset table with default value: needle_len
   slli(t0, needle_len, 8);
-  orr(t0, t0, needle_len); // [63...16][needle_len][needle_len]
+  or(t0, t0, needle_len); // [63...16][needle_len][needle_len]
   slli(tmp1, t0, 16);
-  orr(t0, tmp1, t0); // [63...32][needle_len][needle_len][needle_len][needle_len]
+  or(t0, tmp1, t0); // [63...32][needle_len][needle_len][needle_len][needle_len]
   slli(tmp1, t0, 32);
-  orr(tmp5, tmp1, t0); // tmp5: 8 elements [needle_len]
+  or(tmp5, tmp1, t0); // tmp5: 8 elements [needle_len]
 
   mv(ch1, sp);  // ch1 is t0
   mv(tmp6, ASIZE / STORE_BYTES); // loop iterations
@@ -3730,11 +3730,11 @@ void MacroAssembler::string_indexof(Register haystack, Register needle,
     srli(ch1, ch1, registerSize - 8); // pattern[m-3], 0x0000000c
     andi(tmp6, tmp6, 0xff); // pattern[m-4], 0x0000000d
     slli(ch2, ch2, 16);
-    orr(ch2, ch2, ch1); // 0x00000b0c
+    or(ch2, ch2, ch1); // 0x00000b0c
     slli(result, tmp3, 48); // use result as temp register
-    orr(tmp6, tmp6, result); // 0x0a00000d
+    or(tmp6, tmp6, result); // 0x0a00000d
     slli(result, ch2, 16);
-    orr(tmp6, tmp6, result); // UTF-16:0x0a0b0c0d
+    or(tmp6, tmp6, result); // UTF-16:0x0a0b0c0d
   }
 
   // i = m - 1;
@@ -4067,11 +4067,11 @@ void MacroAssembler::compute_index(Register haystack, Register tailing_zero,
 void MacroAssembler::compute_match_mask(Register src, Register pattern, Register match_mask,
                                         Register mask1, Register mask2)
 {
-  xorr(src, pattern, src);
+  xor(src, pattern, src);
   sub(match_mask, src, mask1);
-  orr(src, src, mask2);
+  or(src, src, mask2);
   notr(src, src);
-  andr(match_mask, match_mask, src);
+  and(match_mask, match_mask, src);
 }
 #endif // COMPILER2
 
@@ -4119,11 +4119,11 @@ void MacroAssembler::inflate_lo32(Register Rd, Register Rs, Register Rtmp1, Regi
   mv(Rd, zr);
   for (int i = 0; i <= 3; i++)
   {
-    andr(Rtmp2, Rs, Rtmp1);
+    and(Rtmp2, Rs, Rtmp1);
     if (i) {
       slli(Rtmp2, Rtmp2, i * 8);
     }
-    orr(Rd, Rd, Rtmp2);
+    or(Rd, Rd, Rtmp2);
     if (i != 3) {
       slli(Rtmp1, Rtmp1, 8);
     }
@@ -4141,8 +4141,8 @@ void MacroAssembler::inflate_hi32(Register Rd, Register Rs, Register Rtmp1, Regi
   mv(Rd, zr);
   for (int i = 0; i <= 3; i++)
   {
-    andr(Rtmp2, Rs, Rtmp1);
-    orr(Rd, Rd, Rtmp2);
+    and(Rtmp2, Rs, Rtmp1);
+    or(Rd, Rd, Rtmp2);
     srli(Rd, Rd, 8);
     if (i != 3) {
       slli(Rtmp1, Rtmp1, 8);

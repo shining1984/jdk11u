@@ -203,7 +203,7 @@ void G1BarrierSetAssembler::g1_write_barrier_post(MacroAssembler* masm,
 
   // Does store cross heap regions?
 
-  __ xorr(tmp, store_addr, new_val);
+  __ xor(tmp, store_addr, new_val);
   __ srli(tmp, tmp, HeapRegion::LogOfHRGrainBytes);
   __ beqz(tmp, done);
 

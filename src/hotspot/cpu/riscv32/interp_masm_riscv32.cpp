@@ -811,7 +811,7 @@ void InterpreterMacroAssembler::lock_object(Register lock_reg)
     // NOTE: the oopMark is in swap_reg %x10 as the result of cmpxchg
     sub(swap_reg, swap_reg, sp);
     li(t0, (unsigned long)(7 - os::vm_page_size()));
-    andr(swap_reg, swap_reg, t0);
+    and(swap_reg, swap_reg, t0);
 
     // Save the test result, for recursive case, the result is zero
     sw(swap_reg, Address(lock_reg, mark_offset));
@@ -1577,7 +1577,7 @@ void InterpreterMacroAssembler::increment_mask_and_jump(Address counter_addr,
   add(tmp1, tmp1, increment);
   sw(tmp1, counter_addr);
   lw(tmp2, mask);
-  andr(tmp1, tmp1, tmp2);
+  and(tmp1, tmp1, tmp2);
   bnez(tmp1, done);
   j(*where); // offset is too large so we have to use j instead of beqz here
   bind(done);
@@ -1650,7 +1650,7 @@ void InterpreterMacroAssembler::profile_obj_type(Register obj, const Address& md
   load_klass(obj, obj);
 
   lw(t0, mdo_addr);
-  xorr(obj, obj, t0);
+  xor(obj, obj, t0);
   andi(t0, obj, TypeEntries::type_klass_mask);
   beqz(t0, next); // klass seen before, nothing to
                            // do. The unknown bit may have been
@@ -1668,7 +1668,7 @@ void InterpreterMacroAssembler::profile_obj_type(Register obj, const Address& md
   // data from memory) fail if another thread has just set the
   // profiling to this obj's klass
   lw(t0, mdo_addr);
-  xorr(obj, obj, t0);
+  xor(obj, obj, t0);
   andi(t0, obj, TypeEntries::type_klass_mask);
   beqz(t0, next);
 

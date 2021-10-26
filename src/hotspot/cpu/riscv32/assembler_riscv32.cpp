@@ -71,8 +71,8 @@ void test_assembler_entry(CodeBuffer *cb) {
 // ArithOp
     __ add(x14, x13, x12);                             //       add     x14, x13, x12
     __ sub(x9, x16, x21);                              //       sub     x9, x16, x21
-    __ orr(x4, x29, x26);                              //       or      x4, x29, x26
-    __ xorr(x11, x20, x17);                            //       xor     x11, x20, x17
+    __ or(x4, x29, x26);                               //       or      x4, x29, x26
+    __ xor(x11, x20, x17);                             //       xor     x11, x20, x17
     __ mul(x3, x12, x31);                              //       mul     x3, x12, x31
     __ mulh(x27, x9, x25);                             //       mulh    x27, x9, x25
     __ mulhsu(x3, x28, x4);                            //       mulhsu  x3, x28, x4
@@ -81,7 +81,7 @@ void test_assembler_entry(CodeBuffer *cb) {
     __ divu(x8, x2, x29);                              //       divu    x8, x2, x29
     __ rem(x20, x11, x16);                             //       rem     x20, x11, x16
     __ remu(x11, x10, x6);                             //       remu    x11, x10, x6
-    __ andr(x11, x5, x31);                             //       and     x11, x5, x31
+    __ and(x11, x5, x31);                              //       and     x11, x5, x31
 
 // AddSubImmOp
     __ addi(x2, x20, 794u);                            //       addi    x2, x20, 0x31a
