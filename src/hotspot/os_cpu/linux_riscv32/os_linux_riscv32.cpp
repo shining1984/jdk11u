@@ -623,7 +623,6 @@ bool os::is_allocatable(size_t bytes) {
 
 #ifndef PRODUCT
 void os::verify_stack_alignment() {
-  assert(((intptr_t)os::current_stack_pointer() & (StackAlignmentInBytes-1)) == 0, "incorrect stack alignment");
 }
 #endif
 
