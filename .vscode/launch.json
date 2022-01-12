@@ -1,0 +1,30 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "localhost:33336",
+            "program": "/home/shining/jdk11u/build/linux-riscv32-normal-core-slowdebug/jdk/bin/java",
+            "args": ["-version"],
+            "stopAtEntry": false,
+            "cwd": "/home/shining/jdk11u",
+            "environment": [],
+            "externalConsole": false,
+            "additionalSOLibSearchPath": "/home/shining/jdk11u/build/linux-riscv32-normal-core-slowdebug/jdk/lib:/home/shining/jdk11u/build/linux-riscv32-normal-core-slowdebug/jdk/lib/jli:/home/shining/jdk11u/build/linux-riscv32-normal-core-slowdebug/jdk/lib/server",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/opt/riscv32/bin/riscv32-unknown-linux-gnu-gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        }
+    ]
+}
