@@ -648,24 +648,24 @@ void TemplateTable::iload_internal(RewriteControl rc) {
 
   // do iload, get the local value into tos
   locals_index(x11);
-  __ lw(x10, iaddress(x11, x10, _masm));
+  __ lw(x10, iaddress(x11, t0, _masm));
 }
 
 void TemplateTable::fast_iload2()
 {
   transition(vtos, itos);
   locals_index(x11);
-  __ lw(x10, iaddress(x11, x10, _masm));
+  __ lw(x10, iaddress(x11, t0, _masm));
   __ push(itos);
   locals_index(x11, 3);
-  __ lw(x10, iaddress(x11, x10, _masm));
+  __ lw(x10, iaddress(x11, t0, _masm));
 }
 
 void TemplateTable::fast_iload()
 {
   transition(vtos, itos);
   locals_index(x11);
-  __ lw(x10, iaddress(x11, x10, _masm));
+  __ lw(x10, iaddress(x11, t0, _masm));
 }
 
 void TemplateTable::lload()
@@ -698,7 +698,7 @@ void TemplateTable::aload()
 {
   transition(vtos, atos);
   locals_index(x11);
-  __ lw(x10, iaddress(x11, x10, _masm));
+  __ lw(x10, iaddress(x11, t0, _masm));
 
 }
 
@@ -879,7 +879,7 @@ void TemplateTable::fast_icaload()
   transition(vtos, itos);
   // load index out of locals
   locals_index(x12);
-  __ lw(x11, iaddress(x12, x11, _masm));
+  __ lw(x11, iaddress(x12, t0, _masm));
   __ pop_ptr(x10);
 
   // x10: array
@@ -1680,7 +1680,7 @@ void TemplateTable::iinc()
   transition(vtos, vtos);
   __ load_signed_byte(x11, at_bcp(2)); // get constant
   locals_index(x12);
-  __ lw(x10, iaddress(x12, x10, _masm));
+  __ lw(x10, iaddress(x12, t0, _masm));
   __ add(x10, x10, x11);
   __ sw(x10, iaddress(x12, t0, _masm));
 }
