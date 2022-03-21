@@ -465,7 +465,7 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
   __ addi(t0, t0, frame::interpreter_frame_monitor_size() + 2);
   __ lw(t1,
         Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
-  __ slli(t0, t0, 3);
+  __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
   __ andi(sp, t0, -8);
 
@@ -493,7 +493,7 @@ address TemplateInterpreterGenerator::generate_deopt_entry_for(TosState state,
   __ lhu(t0, Address(t0, ConstMethod::max_stack_offset()));
   __ addi(t0, t0, frame::interpreter_frame_monitor_size() + 2);
   __ lw(t1, Address(fp, frame::interpreter_frame_initial_sp_offset * wordSize));
-  __ slli(t0, t0, 3);
+  __ slli(t0, t0, 2);
   __ sub(t0, t1, t0);
   __ andi(sp, t0, -8);
 
@@ -851,7 +851,7 @@ void TemplateInterpreterGenerator::generate_fixed_frame(bool native_call) {
   if (!native_call) {
     __ load_max_stack(t0, xmethod);
     __ add(t0, t0, frame::interpreter_frame_monitor_size() + 2);
-    __ slli(t0, t0, 3);
+    __ slli(t0, t0, 2);
     __ sub(t0, sp, t0);
     __ andi(sp, t0, -8);
   }
@@ -1203,8 +1203,8 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   // result potentially in x10 or f10
 
   // make room for the pushes we're about to do
-  __ sub(t0, esp, 2 * wordSize);
-  __ andi(sp, t0, -8);
+  __ sub(t0, esp, 4 * wordSize);
+  __ andi(sp, t0, -16);
 
   // NOTE: The order of these pushes is known to frame::interpreter_frame_result
   // in order to extract the result of a method call. If the order of these
@@ -1774,7 +1774,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   // sp: expression stack of caller
   // fp: fp of caller
   // FIXME: There's no point saving LR here because VM calls don't trash it
-  __ sub(sp, sp, wordSize);
+  __ sub(sp, sp, 2 * wordSize);
   __ sw(x10, Address(sp, 0));                   // save exception
   __ sw(lr, Address(sp, wordSize));             // save return address
   __ super_call_VM_leaf(CAST_FROM_FN_PTR(address,
@@ -1783,7 +1783,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
   __ mv(x11, x10);                              // save exception handler
   __ lw(x10, Address(sp, 0));                   // restore exception
   __ lw(lr, Address(sp, wordSize));             // restore return address
-  __ add(sp, sp, wordSize);
+  __ add(sp, sp, 2 * wordSize);
   // We might be returning to a deopt handler that expects x13 to
   // contain the exception pc
   __ mv(x13, lr);
