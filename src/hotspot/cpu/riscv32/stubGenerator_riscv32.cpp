@@ -2180,16 +2180,16 @@ class StubGenerator: public StubCodeGenerator {
   void compare_string_16_bytes_same(Label &DIFF1, Label &DIFF2) {
     const Register result = x10, str1 = x11, cnt1 = x12, str2 = x13, tmp1 = x28, tmp2 = x29, tmp4 = x7, tmp5 = x31;
     __ lw(tmp5, Address(str1));
-    __ addi(str1, str1, 8);
+    __ addi(str1, str1, wordSize);
     __ xorr(tmp4, tmp1, tmp2);
     __ lw(cnt1, Address(str2));
-    __ addi(str2, str2, 8);
+    __ addi(str2, str2, wordSize);
     __ bnez(tmp4, DIFF1);
     __ lw(tmp1, Address(str1));
-    __ addi(str1, str1, 8);
+    __ addi(str1, str1, wordSize);
     __ xorr(tmp4, tmp5, cnt1);
     __ lw(tmp2, Address(str2));
-    __ addi(str2, str2, 8);
+    __ addi(str2, str2, wordSize);
     __ bnez(tmp4, DIFF2);
   }
 
@@ -2199,9 +2199,9 @@ class StubGenerator: public StubCodeGenerator {
     const Register cnt1 = x12, tmp1 = x28, tmp2 = x29, tmp3 = x30, tmp4 = x7;
 
     __ lw(tmpL, Address(tmp2));
-    __ addi(tmp2, tmp2, 8);
+    __ addi(tmp2, tmp2, wordSize);
     __ lw(tmpU, Address(cnt1));
-    __ addi(cnt1, cnt1, 8);
+    __ addi(cnt1, cnt1, wordSize);
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
     // now we have 32 bytes of characters
@@ -2209,23 +2209,23 @@ class StubGenerator: public StubCodeGenerator {
     __ bnez(tmp3, DIFF2);
 
     __ lw(tmp4, Address(cnt1));
-    __ addi(cnt1, cnt1, 8);
+    __ addi(cnt1, cnt1, wordSize);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmpU, t0);
     __ bnez(tmp3, DIFF1);
 
     __ lw(tmpL, Address(tmp2));
-    __ addi(tmp2, tmp2, 8);
+    __ addi(tmp2, tmp2, wordSize);
     __ lw(tmpU, Address(cnt1));
-    __ addi(cnt1, cnt1, 8);
+    __ addi(cnt1, cnt1, wordSize);
     __ inflate_lo32(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmp4, t0);
     __ bnez(tmp3, DIFF2);
 
     __ lw(tmp4, Address(cnt1));
-    __ addi(cnt1, cnt1, 8);
+    __ addi(cnt1, cnt1, wordSize);
     __ inflate_hi32(tmp3, tmpL);
     __ mv(t0, tmp3);
     __ xorr(tmp3, tmpU, t0);
@@ -2256,7 +2256,7 @@ class StubGenerator: public StubCodeGenerator {
     __ mv(isLU ? tmp1 : tmp2, tmp3);
     __ addi(str1, str1, isLU ? wordSize / 2 : wordSize);
     __ addi(str2, str2, isLU ? wordSize : wordSize / 2);
-    __ sub(cnt2, cnt2, 8); // Already loaded 4 symbols. Last 4 is special case.
+    __ sub(cnt2, cnt2, wordSize); // Already loaded 4 symbols. Last 4 is special case.
     __ push_reg(spilled_regs, sp);
 
     if (isLU) {
@@ -2296,7 +2296,7 @@ class StubGenerator: public StubCodeGenerator {
       __ slli(t0, cnt2, 1);
       __ add(cnt1, cnt1, t0); // Address of 8 bytes before last 4 characters in UTF-16 string
       __ add(tmp2, tmp2, cnt2); // Address of 16 bytes before last 4 characters in Latin1 string
-      __ lw(tmp4, Address(cnt1, -8));
+      __ lw(tmp4, Address(cnt1, -wordSize));
       compare_string_16_x_LU(tmpL, tmpU, DIFF1, DIFF2); // last 16 characters before last load
       __ j(LOAD_LAST);
     __ bind(DIFF2);
