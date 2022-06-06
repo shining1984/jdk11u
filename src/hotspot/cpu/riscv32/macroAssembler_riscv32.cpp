@@ -585,13 +585,13 @@ void MacroAssembler::call_native(address entry_point, Register arg_0) {
 void MacroAssembler::call_native_base(address entry_point, Label *retaddr) {
   Label E, L;
   int32_t offset = 0;
-  push_reg(0x80000040, sp);   // push << t0 & xmethod >> to sp
+  push_reg(0x8040, sp);   // push << t0 & xmethod >> to sp
   lui(t0, (int32_t)entry_point + 0x800);
   jalr(x1, t0, ((int32_t)entry_point<<20)>>20);
   if (retaddr != NULL) {
     bind(*retaddr);
   }
-  pop_reg(0x80000040, sp);   // pop << t0 & xmethod >> from sp
+  pop_reg(0x8040, sp);   // pop << t0 & xmethod >> from sp
 }
 
 void MacroAssembler::call_VM_leaf(address entry_point, int number_of_arguments) {
@@ -1142,15 +1142,15 @@ void MacroAssembler::pop_call_clobbered_registers() {
 
 // Push all the integer registers, except zr(x0) & sp(x2).
 void MacroAssembler::pusha() {
-  push_reg(0xfffffffa, sp);
+  push_reg(0xfffa, sp);
 }
 
 void MacroAssembler::popa() {
-  pop_reg(0xfffffffa, sp);
+  pop_reg(0xfffa, sp);
 }
 
 void MacroAssembler::push_CPU_state() {
-  push_reg(0xfffffff8, sp);         // integer registers except zr(x0) & ra(x1) & sp(x2)
+  push_reg(0xfff8, sp);         // integer registers except zr(x0) & ra(x1) & sp(x2)
   // float registers
   addi(sp, sp, - 32 * wordSize);
   for (int i = 0; i <= 31; i ++) {
@@ -1163,7 +1163,7 @@ void MacroAssembler::pop_CPU_state() {
     fld(as_FloatRegister(i), Address(sp, i * wordSize));
   }
   addi(sp, sp, 32 * wordSize);
-  pop_reg(0xfffffff8, sp);         // integer registers except zr(x0) & ra(x1) & sp(x2)
+  pop_reg(0xfff8, sp);         // integer registers except zr(x0) & ra(x1) & sp(x2)
 }
 
 static int patch_offset_in_jal(address branch, int32_t offset) {
