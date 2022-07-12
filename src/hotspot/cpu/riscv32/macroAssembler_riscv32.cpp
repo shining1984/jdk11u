@@ -1356,17 +1356,15 @@ int MacroAssembler::load_signed_byte(Register dst, Address src) {
 
 void MacroAssembler::load_sized_value(Register dst, Address src, size_t size_in_bytes, bool is_signed, Register dst2) {
   switch (size_in_bytes) {
-    case  8:  lw(dst, src); break;
-    case  4:  is_signed ? lw(dst, src) : lw(dst, src); break;
+    case  4:  lw(dst, src); break;
     case  2:  is_signed ? load_signed_short(dst, src) : load_unsigned_short(dst, src); break;
-    case  1:  is_signed ? load_signed_byte( dst, src) : load_unsigned_byte( dst, src); break;
+    case  1:  is_signed ? load_signed_byte(dst, src) : load_unsigned_byte(dst, src); break;
     default:  ShouldNotReachHere();
   }
 }
 
 void MacroAssembler::store_sized_value(Address dst, Register src, size_t size_in_bytes, Register src2) {
   switch (size_in_bytes) {
-    case  8:  sw(src, dst); break;
     case  4:  sw(src, dst); break;
     case  2:  sh(src, dst); break;
     case  1:  sb(src, dst); break;
@@ -1435,7 +1433,7 @@ void MacroAssembler::grevw(Register Rd, Register Rs, Register Rtmp1, Register Rt
 
 void MacroAssembler::grevwu(Register Rd, Register Rs, Register Rtmp1, Register Rtmp2) {
   // Reverse bytes in word (32bit)
-  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24] (zero-extend to 64 bits)
+  // Rd[31:0] = Rs[7:0] Rs[15:8] Rs[23:16] Rs[31:24]
   assert_different_registers(Rs, Rtmp1, Rtmp2);
   assert_different_registers(Rd, Rtmp1, Rtmp2);
   grev16wu(Rd, Rs, Rtmp1, Rtmp2);
@@ -3184,21 +3182,16 @@ void MacroAssembler::string_equals(Register a1, Register a2,
   assert(elem_size == 1 || elem_size == 2, "must be 2 or 1 byte");
   assert_different_registers(a1, a2, result, cnt1, t0, t1);
 
-#ifndef PRODUCT
-  {
-    const char kind = (elem_size == 2) ? 'U' : 'L';
-    char comment[64];
-    snprintf(comment, sizeof comment, "{string_equals%c", kind);
-    BLOCK_COMMENT(comment);
-  }
-#endif
+  BLOCK_COMMENT("string_equals {");
 
+  beqz(cnt1, SAME);
   mv(result, false);
 
   // Check for short strings, i.e. smaller than wordSize.
   sub(cnt1, cnt1, wordSize);
   bltz(cnt1, SHORT);
-  // Main 8 byte comparison loop.
+
+  // Main 4 byte comparison loop.
   bind(NEXT_WORD); {
     lw(tmp1, Address(a1, 0));
     add(a1, a1, wordSize);
@@ -3207,53 +3200,30 @@ void MacroAssembler::string_equals(Register a1, Register a2,
     sub(cnt1, cnt1, wordSize);
     bne(tmp1, tmp2, DONE);
   } bgtz(cnt1, NEXT_WORD);
-  // Last longword.  In the case where length == 4 we compare the
-  // same longword twice, but that's still faster than another
-  // conditional branch.
-  // cnt1 could be 0, -1, -2, -3, -4 for chars; -4 only happens when
-  // length == 4.
-  add(tmp1, a1, cnt1);
-  lw(tmp1, Address(tmp1, 0));
-  add(tmp2, a2, cnt1);
-  lw(tmp2, Address(tmp2, 0));
-  bne(tmp1, tmp2, DONE);
-  j(SAME);
+
+  if (!AvoidUnalignedAccesses) {
+    // Last longword.  In the case where length == 4 we compare the
+    // same longword twice, but that's still faster than another
+    // conditional branch.
+    // cnt1 could be 0, -1, -2, -3, -4 for chars; -4 only happens when
+    // length == 4.
+    add(tmp1, a1, cnt1);
+    lw(tmp1, Address(tmp1, 0));
+    add(tmp2, a2, cnt1);
+    lw(tmp2, Address(tmp2, 0));
+    bne(tmp1, tmp2, DONE);
+    j(SAME);
+  }
 
   bind(SHORT);
-  Label TAIL03, TAIL01;
+  lw(tmp1, Address(a1));
+  lw(tmp2, Address(a2));
+  xorr(tmp1, tmp1, tmp2);
+  neg(cnt1, cnt1);
+  slli(cnt1, cnt1, LogBitsPerByte);
+  sll(tmp1, tmp1, cnt1);
+  bnez(tmp1, DONE);
 
-  // 0-7 bytes left.
-  andi(t0, cnt1, 4);
-  beqz(t0, TAIL03);
-  {
-    lw(tmp1, Address(a1, 0));
-    add(a1, a1, 4);
-    lw(tmp2, Address(a2, 0));
-    add(a2, a2, 4);
-    bne(tmp1, tmp2, DONE);
-  }
-  bind(TAIL03);
-  // 0-3 bytes left.
-  andi(t0, cnt1, 2);
-  beqz(t0, TAIL01);
-  {
-    lhu(tmp1, Address(a1, 0));
-    add(a1, a1, 2);
-    lhu(tmp2, Address(a2, 0));
-    add(a2, a2, 2);
-    bne(tmp1, tmp2, DONE);
-  }
-  bind(TAIL01);
-  if (elem_size == 1) { // Only needed when comparing 1-byte elements
-    // 0-1 bytes left.
-    andi(t0, cnt1, 1);
-    beqz(t0, SAME);
-    {
-      lbu(tmp1, a1, 0);
-      lbu(tmp2, a2, 0);
-      bne(tmp1, tmp2, DONE);
-    }
-  }
   // Arrays are equal.
   bind(SAME);
   mv(result, true);
