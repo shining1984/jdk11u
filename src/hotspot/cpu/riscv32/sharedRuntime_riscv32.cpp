@@ -870,63 +870,143 @@ static void float_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
 // A long move
 static void long_move(MacroAssembler* masm, VMRegPair src, VMRegPair dst) {
   assert_cond(masm != NULL);
-  if (dst.second()->is_Register()) {
-    if (src.second()->is_Register()) {
-      // <R,R> -> <R,R>
-      assert(dst.first()->is_Register() && src.first()->is_Register(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ mv(dst.second()->as_Register(), src.second()->as_Register());
-    } else if (src.first()->is_Register()) {
-      // <R,stack> -> <R,R>
-      assert(dst.first()->is_Register() && src.second()->is_stack(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
+  if (src.first()->is_reg()) {
+    //<R.X>-><X.X>
+    if (src.second()->is_reg()) {
+      //<R.R>-><X.X>
+      if (dst.first()->is_reg()) {
+        //<R.R>-><R.X>
+        if (dst.second()->is_reg()) {
+          //<R.R>-><R.R>
+          assert(dst.first()->is_reg() && dst.second()->is_reg() && src.first()->is_reg() && src.second()->is_reg(), "must be");
+          __ mv(dst.first()->as_Register(), src.first()->as_Register());
+          __ mv(dst.second()->as_Register(), src.second()->as_Register());
+        } else {
+          //<R.R>-><R.S>
+          assert(dst.first()->is_reg() && dst.second()->is_reg() && src.first()->is_reg() && src.second()->is_stack(), "must be");
+          __ mv(dst.first()->as_Register(), src.first()->as_Register());
+          __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
+        }
+      } else {
+        //<R.R>-><S.X>
+        if (dst.second()->is_reg()) {
+          //<R.R>-><S.R>
+          assert(dst.first()->is_reg() && dst.second()->is_reg() && src.first()->is_stack() && src.second()->is_reg(), "must be");
+          __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
+          __ mv(dst.second()->as_Register(), src.second()->as_Register());
+        } else {
+          //<R.R>-><S.S>
+          assert(dst.first()->is_reg() && dst.second()->is_reg() && src.first()->is_stack() && src.second()->is_stack(), "must be");
+          __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
+          __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
+        }
+      }
     } else {
-      // <stack,stack> -> <R,R>
-      assert(dst.first()->is_Register() && src.first()->is_stack() && src.second()->is_stack(), "must be");
-      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
-    }
-  } else if (src.second()->is_Register()) {
-    if (dst.first()->is_Register()) {
-      // <R,R> -> <R,stack>
-      assert(dst.second()->is_stack() && src.first()->is_Register(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
-    } else {
-      // <R,R> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_Register(), "must be");
-      __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
-      __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
-    }
-  } else if (src.first()->is_Register()) {
-    if (dst.first()->is_Register()) {
-      // <R,stack> -> <R,stack>
-      assert(dst.second()->is_stack() && src.second()->is_stack(), "must be");
-      __ mv(dst.first()->as_Register(), src.first()->as_Register());
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
-    } else {
-      // <R,stack> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.second()->is_stack(), "must be");
-      __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+      //<R.S>-><X.X>
+      if (dst.first()->is_reg()) {
+        //<R.S>-><R.X>
+        if (dst.second()->is_reg()) {
+          //<R.S>-><R.R>
+          assert(dst.first()->is_reg() && dst.second()->is_stack() && src.first()->is_reg() && src.second()->is_reg(), "must be");
+          __ mv(dst.first()->as_Register(), src.first()->as_Register());
+          __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
+        } else {
+          //<R.S>-><R.S>
+          warning("src second is %s", src.second()->name());
+          warning("dest second is %s", dst.second()->name());
+          if(src.is_single_reg()) {
+            warning("src is single reg");
+          }
+          if(dst.is_single_reg()) {
+            warning("dst is single reg");
+          }
+          assert(dst.first()->is_reg() && dst.second()->is_stack() && src.first()->is_reg() && src.second()->is_stack(), "must be");
+          __ mv(dst.first()->as_Register(), src.first()->as_Register());
+          __ lw(t0, Address(fp, reg2offset_in(src.second())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+        }
+      } else {
+        //<R.S>-><S.X>
+        if (dst.second()->is_reg()) {
+          //<R.S>-><S.R>
+          assert(dst.first()->is_reg() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_reg(), "must be");
+          __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
+          __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
+        } else {
+          //<R.S>-><S.S>
+          assert(dst.first()->is_reg() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
+          __ sw(src.first()->as_Register(), Address(sp, reg2offset_out(dst.first())));
+          __ lw(t0, Address(fp, reg2offset_in(src.second())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+        }
+      }
     }
   } else {
-    if (dst.first()->is_Register()) {
-      // <stack,stack> -> <R,stack>
-      assert(dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
-      __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+    //<S.X>-><X.X>
+    if (src.second()->is_reg()) {
+      //<S.R>-><X.X>
+      if (dst.first()->is_reg()) {
+        //<S.R>-><R.X>
+        if (dst.second()->is_reg()) {
+          //<S.R>-><R.R>
+          assert(dst.first()->is_stack() && dst.second()->is_reg() && src.first()->is_reg() && src.second()->is_reg(), "must be");
+          __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+          __ mv(dst.second()->as_Register(), src.second()->as_Register());
+        } else {
+          //<S.R>-><R.S>
+          assert(dst.first()->is_stack() && dst.second()->is_reg() && src.first()->is_reg() && src.second()->is_stack(), "must be");
+          __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+          __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
+        }
+      } else {
+        //<S.R>-><S.X>
+        if (dst.second()->is_reg()) {
+          //<S.R>-><S.R>
+          assert(dst.first()->is_stack() && dst.second()->is_reg() && src.first()->is_stack() && src.second()->is_reg(), "must be");
+          __ lw(t0, Address(fp, reg2offset_in(src.first())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.first())));
+          __ mv(dst.second()->as_Register(), src.second()->as_Register());
+        } else {
+          //<S.R>-><S.S>
+          assert(dst.first()->is_stack() && dst.second()->is_reg() && src.first()->is_stack() && src.second()->is_reg(), "must be");
+          __ lw(t0, Address(fp, reg2offset_in(src.first())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.first())));
+          __ sw(src.second()->as_Register(), Address(sp, reg2offset_out(dst.second())));
+        }
+      }
     } else {
-      // <stack,stack> -> <stack,stack>
-      assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
-      __ lw(t0, Address(fp, reg2offset_in(src.first())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.first())));
-      __ lw(t0, Address(fp, reg2offset_in(src.second())));
-      __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+      //<S.S>-><X.X>
+      if (dst.first()->is_reg()) {
+        //<S.S>-><R.X>
+        if (dst.second()->is_reg()) {
+          //<S.S>-><R.R>
+          assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_reg() && src.second()->is_reg(), "must be");
+          __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+          __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
+        } else {
+          //<S.S>-><R.S>
+          assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_reg() && src.second()->is_stack(), "must be");
+          __ lw(dst.first()->as_Register(), Address(fp, reg2offset_in(src.first())));
+          __ lw(t0, Address(fp, reg2offset_in(src.second())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+        }
+      } else {
+        //<S.S>-><S.X>
+        if (dst.second()->is_reg()) {
+          //<S.S>-><S.R>
+          assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_reg(), "must be");
+          __ lw(t0, Address(fp, reg2offset_in(src.first())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.first())));
+          __ lw(dst.second()->as_Register(), Address(fp, reg2offset_in(src.second())));
+        } else {
+          //<S.S>-><S.S>
+          assert(dst.first()->is_stack() && dst.second()->is_stack() && src.first()->is_stack() && src.second()->is_stack(), "must be");
+          __ lw(t0, Address(fp, reg2offset_in(src.first())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.first())));
+          __ lw(t0, Address(fp, reg2offset_in(src.second())));
+          __ sw(t0, Address(sp, reg2offset_out(dst.second())));
+        }
+      }
     }
   }
 }
